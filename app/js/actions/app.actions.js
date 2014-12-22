@@ -28,6 +28,27 @@ var AppActions = {
 			actionType: AppConstants.DECREASE_ITEM,
 			index: index
 		});
+	},
+
+	searchMusic: function(searchTerm) {
+		AppDispatcher.handleViewAction({
+			actionType: AppConstants.SEARCH_MUSIC,
+			searchTerm: searchTerm
+		});
+	},
+
+	getDetails: function(url, type) {
+		AppDispatcher.handleViewAction({
+			actionType: AppConstants.GET_DETAILS,
+			url: url
+		});
+	},
+
+	login: function(auth) {
+		AppDispatcher.handleViewAction({
+			actionType: AppConstants.LOGIN,
+			auth: auth
+		});
 	}
 };
 

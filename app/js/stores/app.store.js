@@ -2,6 +2,7 @@ var AppDispatcher = require('../dispatcher/app.dispatcher.js');
 var AppConstants = require('../constants/app.constants.js');
 var merge = require('react/lib/merge');
 var EventEmitter = require('events').EventEmitter;
+var request = require('superagent');
 
 var CHANGE_EVENT = "change";
 
@@ -13,6 +14,8 @@ var _catalog = [
 ];
 
 var _cartItems = [];
+
+var results = [];
 
 function _increaseItem(index) {
 	_cartItems[index].qty++;
@@ -40,9 +43,33 @@ function _addItem(item) {
 	}
 }
 
+function _getDetails(url, callback){
+	request.get(url)
+			.end(function(res) {
+				callback(res);
+			});
+}
+
+function _login(auth, callback) {
+	request.get('/login')
+		.end(function(res) {
+			debugger;
+			callback(res);
+		});
+}
+
 function _removeItem(index) {
 	_cartItems[index].inCart = false;
 	_cartItems.splice(index, 1);
+}
+
+function _searchMusic(searchTerm, callback) {
+	request.get('https://api.spotify.com/v1/search')
+		.query({q: searchTerm})
+		.query({type: 'artist'})
+		.end(function(res) {
+			callback(res);
+		});
 }
 
 var AppStore = merge(EventEmitter.prototype, {
@@ -66,6 +93,10 @@ var AppStore = merge(EventEmitter.prototype, {
 		return _catalog;
 	},
 
+	getResults: function() {
+		return results;
+	},
+
 	dispatcherIndex:AppDispatcher.register(function(payload) {
 		var action = payload.action;
 		switch(action.actionType) {
@@ -83,6 +114,24 @@ var AppStore = merge(EventEmitter.prototype, {
 
 			case AppConstants.DECREASE_ITEM:
 				_decreaseItem(payload.action.index);
+				break;
+
+			case AppConstants.SEARCH_MUSIC:
+				_searchMusic(payload.action.searchTerm, function(res) {
+					results = res.body.artists.items;
+					AppStore.emitChange();
+				});
+				break;
+			case AppConstants.GET_DETAILS:
+				_getDetails(payload.action.url, function(res) {
+					console.log(res);
+				});
+				break;
+			case AppConstants.LOGIN:
+				_login(payload.action.auth, function(res) {
+					debugger;
+					console.log(res);
+				});
 				break;
 		}
 
